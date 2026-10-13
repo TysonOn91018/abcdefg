@@ -13,7 +13,7 @@ Open the localhost address printed by Vite. `npm run build` performs strict Type
 
 ## Use
 
-Expand the six proportion groups to choose among 20 size options. Head dimensions follow the helmet; left and right limbs remain independent. Changes appear immediately. Use the built-in starting points or randomize, then enter a name and press + to save a custom preset. Custom presets persist in this browser's localStorage and can be loaded, renamed, or deleted. Reset returns every value to exactly 100%.
+Expand the six proportion groups to adjust 20 continuous proportion sliders. Head dimensions follow the helmet; left and right limbs remain independent. Changes appear immediately. Use the built-in starting points or randomize, then enter a name and press + to save a custom preset. Custom presets persist in this browser's localStorage and can be loaded, renamed, or deleted. Reset returns every value to exactly 100%.
 
 SVG and PNG exports have transparent backgrounds and include only the character. PNG exports have a 2400-pixel longest edge. JSON export saves every parameter; JSON import requires all 22 finite numeric parameters and clamps numbers to the new safe ranges. Legacy head dimensions are normalized to match the helmet. Imported invalid objects leave the current character unchanged. Zoom and Fit affect only the preview, never exports. The mobile layout puts the preview before the controls.
 
@@ -23,7 +23,7 @@ SVG and PNG exports have transparent backgrounds and include only the character.
 
 Legs use two equal segments with an explicit knee pose. Their combined length always equals the requested leg length. A shared ground line is y=0; ankle height accounts for each foot's size. The hip height is limited by whichever leg has the tighter vertical reach. Longer legs bend outward to reach the same baseline, preserving asymmetric slider values. This is a pose adjustment, not an override of requested lengths. When the torso width changes, hips and the connected legs move with it.
 
-Conservative bounds include the helmet, head profile, all joints, hands, feet, and stroke padding, so Fit and transparent exports include enlarged and asymmetric characters. Head and helmet dimensions are linked. Their shared width and height have Small / Standard / Large options (85–115%). Limb thickness and feet use 85–120%; hands use 85–150%; lengths use 75–150%. These limits apply to imported JSON, saved presets, and randomization too. Wrist and ankle openings match the connected limb width, while the visor edge follows the helmet rim.
+Conservative bounds include the helmet, head profile, all joints, hands, feet, and stroke padding, so Fit and transparent exports include enlarged and asymmetric characters. Head and helmet dimensions are linked. Their shared width and height have continuous sliders (85–115%). Limb thickness and feet use 85–120%; hands use 85–150%; lengths use 75–150%. These limits apply to imported JSON, saved presets, and randomization too. Wrist and ankle openings match the connected limb width, while the visor edge follows the helmet rim.
 
 ## Source layout
 
@@ -49,3 +49,5 @@ For future changes, run `npm run build`, then replace the contents of `docs/` wi
 ## Fixed joint connections
 
 Shoulder, elbow and wrist openings stay 10 SVG units wide; hip, knee and ankle openings stay 18 units wide. Body thickness changes the middle of each limb segment, tapering back to the fixed joint openings. Hands and feet use the same fixed attachment widths. Outer silhouettes are drawn together before inner fills, removing internal elbow/knee outlines. Anchor positions still follow connected limb lengths and torso proportions, while joint sizes remain fixed.
+
+All 20 visible size controls now use continuous sliders with 1% increments. Fixed joint openings and safe bounds remain unchanged.
