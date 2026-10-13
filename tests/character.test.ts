@@ -1,32 +1,44 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {defaults,keys,maxValue,minValue,validateConfig} from '../src/character/characterDefaults';
-import {geometry} from '../src/character/geometryEngine';
+import {defaults,keys,validateConfig,optionsFor,randomConfig} from '../src/character/characterDefaults';
+import {geometry,referenceWarp,warpPath} from '../src/character/geometryEngine';
+import {referenceParts} from '../src/character/referenceParts';
 import {parseConfig,serializeConfig,parsePresets} from '../src/utils/storage';
-const dist=(a:{x:number;y:number},b:{x:number;y:number})=>Math.hypot(a.x-b.x,a.y-b.y);
-test('all combinations of leg and foot extremes preserve segment lengths and shared ground',()=>{
- for(const leftLeg of [.5,1,2])for(const rightLeg of [.5,1,2])for(const leftFoot of [.5,2])for(const rightFoot of [.5,2]){
- const c={...defaults,leftLeg,rightLeg,leftFoot,rightFoot};const g=geometry(c);
- for(const l of Object.values(g.legs)){assert.ok(Math.abs(dist(l.hip,l.knee)+dist(l.knee,l.ankle)-l.length)<1e-8);assert.ok(Math.abs(l.ankle.y+18*l.foot)<1e-8);}
- }
+const close=(a:number,b:number)=>assert.ok(Math.abs(a-b)<1e-8,`${a} differs from ${b}`);
+const coords=(s:string)=>(s.match(/[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?\d+)?/g)||[]).map(Number);
+test('default geometry exactly preserves every original SVG path coordinate',()=>{
+ const g=geometry(defaults),original=referenceParts.filter(p=>p.type==='path');
+ assert.equal(g.paths.length,original.length);
+ original.forEach((p,i)=>{const a=coords(p.d),b=coords(g.paths[i].d);assert.equal(a.length,b.length);a.forEach((n,j)=>close(n,b[j]));});
 });
-test('arm anchors preserve lengths; hand scaling does not change arm anchors',()=>{
- const c={...defaults,leftUpperArm:2,leftForearm:.5,leftHand:2.5};const g=geometry(c);assert.ok(Math.abs(dist(g.arms.left.shoulder,g.arms.left.elbow)-86)<1e-8);assert.ok(Math.abs(dist(g.arms.left.elbow,g.arms.left.wrist)-18.5)<1e-8);assert.deepEqual(g.arms.left.wrist,geometry({...c,leftHand:.5}).arms.left.wrist);assert.deepEqual(g.arms.right,geometry(defaults).arms.right);
+test('continuous silhouette retains the original closed Bezier contour',()=>{
+ const g=geometry({...defaults,leftUpperArm:1.5,leftForearm:.75,leftHand:1.5,rightFoot:.85});
+ const full=g.paths.find(p=>p.d.includes('179.')&&'fill' in p&&p.fill==='#C5C5C5')||g.paths[2];
+ assert.equal(full.d.match(/[MLCZ]/g)?.join(''),referenceParts[2].type==='path'?referenceParts[2].d.match(/[MLCZ]/g)?.join(''):'');
+ assert.ok(full.d.endsWith('Z'));
 });
-test('torso dimensions move attached joints',()=>{const a=geometry(defaults),b=geometry({...defaults,torsoWidth:2,torsoLength:2});assert.ok(Math.abs(b.arms.left.shoulder.x)>Math.abs(a.arms.left.shoulder.x));assert.equal(b.neck.y,a.neck.y-91);assert.equal(b.legs.left.hip.y,b.hipY);});
-test('every independent parameter and maximum combination has finite generous bounds',()=>{
- const configs=[defaults,Object.fromEntries(keys.map(k=>[k,maxValue(k)])),...keys.map(k=>({...defaults,[k]:maxValue(k)}))];for(const c of configs){const g=geometry(validateConfig(c));for(const v of Object.values(g.bounds))assert.ok(Number.isFinite(v));assert.ok(g.bounds.width>0&&g.bounds.height>0);for(const l of Object.values(g.legs)){assert.ok(l.knee.x>g.bounds.x&&l.knee.x<g.bounds.x+g.bounds.width);}}
+test('shared source joint points map to identical positions on adjacent contours',()=>{
+ for(let i=0;i<30;i++){const w=referenceWarp(randomConfig());for(const p of [{x:6.85326,y:97.5023},{x:15.029,y:97.8624},{x:16.3365,y:179.496},{x:27.4103,y:181.091}]){
+ const d=warpPath(`M${p.x} ${p.y}L${p.x} ${p.y}`,w);const v=coords(d);close(v[0],v[2]);close(v[1],v[3]);
+ }}
 });
-test('validation rejects missing, malformed and non-finite values and clamps permitted ranges',()=>{for(const v of [null,[],{}, {...defaults,leftHand:NaN},{...defaults,leftLeg:'2'}])assert.throws(()=>validateConfig(v));assert.equal(validateConfig({...defaults,leftHand:9}).leftHand,1.5);assert.equal(validateConfig({...defaults,leftLeg:-1}).leftLeg,.75);});
-test('JSON and presets retain every customization parameter',()=>{const c=validateConfig(Object.fromEntries(keys.map((k,i)=>[k,.5+i*.06])));assert.deepEqual(parseConfig(serializeConfig(c)),c);const presets=[{id:'test',name:'My explorer',config:c}];assert.deepEqual(parsePresets(JSON.stringify(presets)),presets);assert.throws(()=>parsePresets('[{"id":1}]'));});
-
-test('helmet and head remain linked even for legacy imported configurations',()=>{const c=validateConfig({...defaults,headWidth:2,headHeight:.5,helmetWidth:1.15,helmetHeight:.85});assert.equal(c.headWidth,c.helmetWidth);assert.equal(c.headHeight,c.helmetHeight);const g=geometry(c);assert.equal(g.head.width,1.15);assert.equal(g.head.height,.85);assert.ok(Math.abs((g.visorTip.x/g.helmet.rx)**2+((g.visorTip.y-g.helmet.y)/g.helmet.ry)**2-1)<1e-9);});
-test('randomization uses only safe preset sizes',async()=>{const {randomConfig,optionsFor}=await import('../src/character/characterDefaults');for(let i=0;i<100;i++){const c=randomConfig();for(const k of keys)assert.ok(optionsFor(k).includes(c[k]));}});
-
-test('all limb joint openings stay fixed while body widths and extremities change',()=>{
- const standard=geometry(defaults);
- for(const size of [.85,1,1.2]){
- const changed=geometry({...defaults,leftArmThickness:size,rightArmThickness:size,leftLegThickness:size,rightLegThickness:size,leftHand:1.5,rightHand:.85,leftFoot:1.2,rightFoot:.85});
- for(const side of ['left','right'] as const){assert.equal(changed.arms[side].jointThickness,10);assert.equal(changed.legs[side].jointThickness,18);for(const anchor of ['elbow','wrist'] as const){assert.equal(changed.arms[side][anchor].x,standard.arms[side][anchor].x);assert.ok(Math.abs((changed.arms[side][anchor].y-changed.neck.y)-(standard.arms[side][anchor].y-standard.neck.y))<1e-9);}}
- }
+test('asymmetric hands and arm lengths leave opposite arm unchanged',()=>{
+ const a=referenceWarp(defaults),b=referenceWarp({...defaults,leftHand:1.5,leftUpperArm:1.5,leftForearm:1.25});
+ for(const p of [{x:88.368,y:111.122},{x:81.473,y:96.535}])assert.deepEqual(a(p.x,p.y),b(p.x,p.y));
+ assert.notDeepEqual(a(7.93434,110.455),b(7.93434,110.455));
 });
+test('all slider extremes and random shapes stay inside export bounds',()=>{
+ const configs=[defaults,...keys.flatMap(k=>optionsFor(k).map(v=>validateConfig({...defaults,[k]:v}))),...Array.from({length:40},()=>randomConfig())];
+ for(const c of configs){const g=geometry(c);for(const p of g.paths){const v=coords(p.d);for(let i=0;i<v.length;i+=2){assert.ok(Number.isFinite(v[i])&&Number.isFinite(v[i+1]));assert.ok(v[i]>=g.bounds.x&&v[i]<=g.bounds.x+g.bounds.width);assert.ok(v[i+1]>=g.bounds.y&&v[i+1]<=g.bounds.y+g.bounds.height);}}}
+});
+test('each visible parameter changes the intended original vector coordinates',()=>{
+ const baseline=geometry(defaults).paths.map(p=>p.d).join('');for(const k of keys.filter(k=>!k.startsWith('head'))){const c=validateConfig({...defaults,[k]:optionsFor(k).at(-1)});assert.notEqual(geometry(c).paths.map(p=>p.d).join(''),baseline,k);}
+});
+test('validation rejects malformed values and keeps head and helmet linked',()=>{
+ for(const v of [null,[],{}, {...defaults,leftHand:NaN},{...defaults,leftLeg:'2'}])assert.throws(()=>validateConfig(v));
+ const c=validateConfig({...defaults,leftHand:9,leftLeg:-1,headWidth:2,helmetWidth:1.15});assert.equal(c.leftHand,1.5);assert.equal(c.leftLeg,.75);assert.equal(c.headWidth,c.helmetWidth);
+});
+test('JSON and presets retain every validated customization parameter',()=>{
+ const c=randomConfig();assert.deepEqual(parseConfig(serializeConfig(c)),c);const p=[{id:'test',name:'Explorer',config:c}];assert.deepEqual(parsePresets(JSON.stringify(p)),p);assert.throws(()=>parsePresets('[{"id":1}]'));
+});
+test('randomization uses only safe proportion options',()=>{for(let i=0;i<100;i++){const c=randomConfig();for(const k of keys)assert.ok(optionsFor(k).includes(c[k]));}});
