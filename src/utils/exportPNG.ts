@@ -1,0 +1,4 @@
+import type {CharacterConfig} from '../character/characterTypes';
+import {svgText,download} from './exportSVG';
+import {geometry} from '../character/geometryEngine';
+export async function exportPNG(config:CharacterConfig){const url=URL.createObjectURL(new Blob([svgText(config)],{type:'image/svg+xml'}));try{const img=new Image();img.src=url;await img.decode();const b=geometry(config).bounds;const canvas=document.createElement('canvas');const scale=2400/Math.max(b.width,b.height);canvas.width=Math.ceil(b.width*scale);canvas.height=Math.ceil(b.height*scale);const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas is unavailable');ctx.drawImage(img,0,0,canvas.width,canvas.height);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('PNG export failed')),'image/png'));download(blob,'orbit-character.png');}finally{URL.revokeObjectURL(url);}}
