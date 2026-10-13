@@ -11,7 +11,7 @@ export function geometry(input:CharacterConfig){
  const upper=43*c[`${side}UpperArm`],fore=37*c[`${side}Forearm`];
  const elbow={x:shoulder.x+sign*upper*.43,y:shoulder.y+upper*Math.sqrt(1-.43**2)};
  const wrist={x:elbow.x+sign*fore*.14,y:elbow.y+fore*Math.sqrt(1-.14**2)};
- return {shoulder,elbow,wrist,thickness:10*c[`${side}ArmThickness`],hand:c[`${side}Hand`]};
+ return {shoulder,elbow,wrist,jointThickness:10,thickness:10*c[`${side}ArmThickness`],hand:c[`${side}Hand`]};
  }
  function leg(side:'left'|'right',sign:number,length:number){
  const hip={x:sign*w*.25,y:hipY};const ankle={x:hip.x+sign*25,y:-18*c[`${side}Foot`]};
@@ -20,7 +20,7 @@ export function geometry(input:CharacterConfig){
  const dx=Math.min(25,length*.2,Math.sqrt(Math.max(0,length**2-drop**2))*.7);ankle.x=hip.x+sign*dx;
  const distance=Math.hypot(dx,drop),bend=Math.sqrt(Math.max(0,(length/2)**2-(distance/2)**2));
  const knee={x:(hip.x+ankle.x)/2+sign*bend*drop/distance,y:(hipY+ankle.y)/2-bend*dx/distance};
- return {hip,knee,ankle,length,thickness:18*c[`${side}LegThickness`],foot:c[`${side}Foot`]};
+ return {hip,knee,ankle,length,jointThickness:18,thickness:18*c[`${side}LegThickness`],foot:c[`${side}Foot`]};
  }
  const arms={left:arm('left',-1),right:arm('right',1)};
  const legs={left:leg('left',-1,leftLength),right:leg('right',1,rightLength)};

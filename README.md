@@ -45,3 +45,7 @@ The source index.html cannot run directly on GitHub Pages: its TypeScript entry 
 4. Save and wait for the Pages deployment to complete.
 
 For future changes, run `npm run build`, then replace the contents of `docs/` with the newly generated contents of `dist/` before uploading. `vite.config.ts` sets relative asset paths; upload this configuration too if you plan to build from the repository later.
+
+## Fixed joint connections
+
+Shoulder, elbow and wrist openings stay 10 SVG units wide; hip, knee and ankle openings stay 18 units wide. Body thickness changes the middle of each limb segment, tapering back to the fixed joint openings. Hands and feet use the same fixed attachment widths. Outer silhouettes are drawn together before inner fills, removing internal elbow/knee outlines. Anchor positions still follow connected limb lengths and torso proportions, while joint sizes remain fixed.
