@@ -42,3 +42,18 @@ test('JSON and presets retain every validated customization parameter',()=>{
  const c=randomConfig();assert.deepEqual(parseConfig(serializeConfig(c)),c);const p=[{id:'test',name:'Explorer',config:c}];assert.deepEqual(parsePresets(JSON.stringify(p)),p);assert.throws(()=>parsePresets('[{"id":1}]'));
 });
 test('randomization uses only safe proportion options',()=>{for(let i=0;i<100;i++){const c=randomConfig();for(const k of keys)assert.ok(optionsFor(k).includes(c[k]));}});
+
+test('each leg length changes only its own vertical reach and carries its foot',()=>{
+ const base=referenceWarp(defaults);
+ for(const side of ['left','right'] as const){
+  const x=side==='left'?22:79,other=side==='left'?79:22;
+  for(const size of [.75,1.16,1.5]){
+   const w=referenceWarp({...defaults,[`${side}Leg`]:size});
+   close(w(x,180).y-126,54*size);
+   close(w(x,194).y-w(x,180).y,14);
+   assert.deepEqual(w(other,180),base(other,180));
+   assert.deepEqual(w(47,80),base(47,80));
+   assert.deepEqual(w(11,98),base(11,98));
+  }
+ }
+});

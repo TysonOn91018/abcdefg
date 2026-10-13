@@ -7,13 +7,13 @@ const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
  * points always produce identical positions, including every joint boundary. */
 export function referenceWarp(c:CharacterConfig){
  const center=47;
- const hip=180-54*Math.min(c.leftLeg,c.rightLeg);
+ const hip=126;
  const neck=hip-70*c.torsoLength;
  const bodyX=(x:number,y:number)=>center+(x-center)*lerp(c.helmetWidth,c.torsoWidth,smooth((y-56)/14));
  const armY=(y:number,side:'left'|'right')=>neck+(Math.min(y,78)-56)*c[`${side}UpperArm`]+Math.max(0,y-78)*c[`${side}Forearm`];
  function point(x:number,y:number):Point{
   if(y<56)return {x:center+(x-center)*c.helmetWidth,y:neck+(y-56)*c.helmetHeight};
-  const side=x<center?'left':'right',sign=side==='left'?-1:1;
+  const side=x<center?'left':'right';
   const shoulder=side==='left'?26:68,wrist=side==='left'?11:86;
   if(y<114 && (x<27 || x>67)){
    const t=Math.max(0,Math.min(1,(y-56)/42));
@@ -32,14 +32,11 @@ export function referenceWarp(c:CharacterConfig){
   const footCenter=side==='left'?22:79;
   const hipCenter=side==='left'?34:61;
   const footX=center+(hipCenter-center)*c.torsoWidth+(footCenter-hipCenter);
-  const ankle=194-14*foot;
+  const ankle=hip+54*length;
   const t=Math.max(0,Math.min(1,(y-126)/54));
   const axis=lerp(hipCenter,footCenter,t);
   const axisX=center+(hipCenter-center)*c.torsoWidth+(axis-hipCenter);
-  const extra=Math.max(0,length-Math.min(c.leftLeg,c.rightLeg));
-  // An asymmetric longer leg gets a smooth outward pose, never a sharp knee.
-  const bend=sign*36*Math.sqrt(extra)*Math.sin(Math.PI*t);
-  const legX=axisX+(x-axis)*thickness+bend;
+  const legX=axisX+(x-axis)*thickness;
   const legY=hip+(y-126)/54*(ankle-hip);
   const fx=footX+(x-footCenter)*foot,fy=ankle+(y-180)*foot;
   const blend=smooth((y-168)/12);

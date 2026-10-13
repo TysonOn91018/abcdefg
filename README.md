@@ -20,7 +20,7 @@ The user-supplied files are preserved in `src/character/reference/`. `referenceP
 
 `referenceGeometry.ts` deforms the continuous full-body contour instead of assembling separately capped limbs. Shared source coordinates map to identical output coordinates. Wrist and ankle transitions blend smoothly into hands and feet, so no masking strips, joint caps or patch strokes are required. Cubic path commands remain vector paths. The face and helmet dimensions remain linked.
 
-The deformation applies independent arm length, thickness, hand size, leg proportions and foot size changes. For unequal leg proportions, the longer leg receives a smooth outward bow so the feet remain near the shared ground plane. These are silhouette proportion controls, not measured skeletal segment lengths. The original illustration's slight left/right asymmetry and natural foot contours are preserved.
+The deformation applies independent arm length, thickness, hand size, leg proportions and foot size changes. Leg length now directly scales the vertical hip-to-ankle distance on the selected screen side. The opposite leg, torso and arms stay unchanged. Feet follow their own ankle; unequal leg lengths deliberately produce unequal foot heights instead of converting length into sideways bending. The original illustration's slight left/right asymmetry and natural foot contours are preserved.
 
 ## Controls, presets and exports
 
@@ -43,3 +43,5 @@ SVG and PNG exports contain only the current character with transparent backgrou
 The source `index.html` requires a Vite build. Upload the generated `docs/` folder with its nested `assets/` folder and choose repository Settings → Pages → Deploy from a branch → main → `/docs`.
 
 After changing code, run `npm run build`, replace the generated files in `docs/` with the contents of `dist/`, and upload the refreshed files. Relative asset URLs in `vite.config.ts` support GitHub Pages repository subpaths.
+
+The complete interface is localized to Simplified Chinese. Left/right labels explicitly refer to screen position.
