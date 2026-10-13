@@ -34,3 +34,14 @@ Conservative bounds include the helmet, head profile, all joints, hands, feet, a
 - `tests/`: extreme leg/foot combinations, independent arms, torso attachment, bounds, validation, preset round-trips, head/helmet alignment, and safe randomization.
 
 No backend is required. Fonts load from Google Fonts with local sans-serif fallbacks; all editing and exports run locally.
+
+## GitHub Pages (browser upload)
+
+The source index.html cannot run directly on GitHub Pages: its TypeScript entry needs to be built by Vite. A compiled copy is prepared in `docs/`, with relative asset URLs suitable for a repository subpath such as `/abcdefg/`.
+
+1. Upload the entire `docs` folder to the repository root, keeping its nested `assets` folder.
+2. Open repository Settings → Pages.
+3. Select Deploy from a branch, select the branch containing your uploaded files, and choose `/docs`.
+4. Save and wait for the Pages deployment to complete.
+
+For future changes, run `npm run build`, then replace the contents of `docs/` with the newly generated contents of `dist/` before uploading. `vite.config.ts` sets relative asset paths; upload this configuration too if you plan to build from the repository later.
